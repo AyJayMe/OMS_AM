@@ -24,7 +24,7 @@ namespace Domain
             Price = price;
             Quantity = quantity;
             StockItemId = stockItemId;
-            Total = Price * Quantity;
+            Total = Quantity * Price;
         }
     }
 }

@@ -9,23 +9,30 @@
       Title="NewOrder">
 
     <Grid x:Name="NewOrder1" Background="White">
-        <Label Content="New Order" HorizontalAlignment="Left" Margin="25,25,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="16"/>
+        <Label Content="New Order" HorizontalAlignment="Left" Margin="25,5,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="16"/>
         <Label Content="Order Created:" HorizontalAlignment="Left" Margin="559,57,0,0" VerticalAlignment="Top"/>
         <TextBlock x:Name="txtOrderDateTime" HorizontalAlignment="Left" Margin="652,62,0,0" TextWrapping="Wrap" Text="02/05/2020 11:40AM" VerticalAlignment="Top" Height="28" Width="131" RenderTransformOrigin="0.462,-0.057"/>
         <TextBlock x:Name="txtOrderNumber" HorizontalAlignment="Left" Margin="31,60,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="28" Width="217" Text="Order Number: " FontSize="14"/>
         <TextBlock x:Name="txtOrderValue" HorizontalAlignment="Left" Margin="253,60,0,0" TextWrapping="Wrap" Text="Order Value: $0.00" VerticalAlignment="Top" Height="28" Width="185" RenderTransformOrigin="0.462,-0.057" FontSize="14"/>
         <DataGrid x:Name="grdOrderItems" HorizontalAlignment="Left" Height="258" Margin="31,127,0,0" VerticalAlignment="Top" Width="731" AutoGenerateColumns="False">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="SKU" Binding="{Binding StockId}" Width="75"/>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}"  Width="*"/>
+                <DataGridTextColumn Header="SKU" Binding="{Binding StockItemId}" Width="75"/>
+                <DataGridTextColumn Header="Name" Binding="{Binding Description}"  Width="*"/>
                 <DataGridTextColumn Header="Price" Binding="{Binding Price}"  Width="*"/>
                 <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}"  Width="*"/>
+                <DataGridTemplateColumn  Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Delete" Click="btnDeleteItem_Click"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
         <Button x:Name="btnExit" Content="Exit" HorizontalAlignment="Left" Margin="706,10,0,0" VerticalAlignment="Top" Width="56" Background="#FFFAB63E" FontWeight="Bold" Click="btnExit_Click"/>
-        <Button x:Name="btnConfirmOrder" Content="Confirm order" HorizontalAlignment="Left" Margin="597,400,0,0" VerticalAlignment="Top" Width="165" Height="36" Background="#FF54AF48" FontWeight="Bold" FontSize="16" Click="btnConfirmOrder_Click"/>
+        <Button x:Name="btnConfirmOrder" Content="Submit order" HorizontalAlignment="Left" Margin="597,400,0,0" VerticalAlignment="Top" Width="165" Height="36" Background="#FF54AF48" FontWeight="Bold" FontSize="16" Click="btnConfirmOrder_Click"/>
         <Image x:Name="imgNewOrder" HorizontalAlignment="Left" Height="24" Margin="31,98,0,0" VerticalAlignment="Top" Width="24" Source="green-plus-sign-clipart.png"/>
-        <Button x:Name="btnAddItem" Content="Add Item" HorizontalAlignment="Left" Margin="31,98,0,0" VerticalAlignment="Top" Width="103" Height="24" BorderThickness="0" ClipToBounds="True" Click="btnAddItem_Click"/>
+        <Button x:Name="btnAddItem" Content="Add Item" HorizontalAlignment="Left" Margin="55,98,0,0" VerticalAlignment="Top" Width="79" Height="24" BorderThickness="0" ClipToBounds="True" Click="btnAddItem_Click"/>
 
     </Grid>
 </Page>

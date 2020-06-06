@@ -29,7 +29,7 @@ namespace Controllers
 
         public OrderHeader GetOrderHeader(int orderId)
         {
-            return repository.GetOrderHeaders().First(o => o.OrderHeaderId == orderId);
+            return repository.GetOrderHeaders().First(o => o.Id == orderId);
         }
         public IEnumerable<OrderHeader> GetOrderHeaders()
         {
@@ -40,27 +40,32 @@ namespace Controllers
             return repository.InsertOrderHeader();
         }
 
-        public void UpsertOrderItem(int orderHeaderId, StockItem stockItem, int quantity)
+        public void UpsertOrderItem(OrderHeader orderHeader, OrderItem orderItem)
         {
-            repository.UpsertOrderItem(orderHeaderId, stockItem, quantity);
+            repository.UpsertOrderItem(orderHeader, orderItem);
         }
-        public OrderHeader SubmitOrder(int orderHeaderId)
+        public void SubmitOrder(OrderHeader orderHeader)
         {
             int stateId = 2; //2 refers to pending order status
-            return repository.UpdateOrderState(orderHeaderId, stateId);
+            repository.UpdateOrderState(orderHeader, stateId);
         }
-        public OrderHeader ProcessOrder(int orderHeaderId)
+        public void ProcessOrder(OrderHeader orderHeader)
         {
             int stateId = 3; //3 refers to the processed order status
-            return repository.UpdateOrderState(orderHeaderId, stateId);
+            repository.UpdateOrderState(orderHeader, stateId);
         }
-        public void DeleteOrderHeaderAndOrderItems(int orderHeaderId)
+        public void RejectOrder(OrderHeader orderHeader)
         {
-            repository.DeleteOrderHeaderAndOrderItems(orderHeaderId);
+            int stateId = 4; //3 refers to the rejected order status
+            repository.UpdateOrderState(orderHeader, stateId);
         }
-        public void DeleteOrderItem(int orderHeaderId, int stockItemId)
+        public void DeleteOrderHeaderAndOrderItems(OrderHeader orderHeader)
         {
-            repository.DeleteOrderItem(orderHeaderId, stockItemId);
+            repository.DeleteOrderHeaderAndOrderItems(orderHeader);
+        }
+        public void DeleteOrderItem(OrderHeader orderHeader, int stockItemId)
+        {
+            repository.DeleteOrderItem(orderHeader, stockItemId);
         }
 
     }

@@ -28,7 +28,7 @@ namespace OMS_AM
         {
             InitializeComponent();
             orderHeader = o;
-            lblOrderNum.Content = "Order #" + orderHeader.OrderHeaderId;
+            lblOrderNum.Content = "Order #" + orderHeader.Id;
             DataContext = new StockItem();
             gridStock.ItemsSource = StockController.Instance.GetStockItems();
         }
@@ -37,19 +37,27 @@ namespace OMS_AM
         {
             bool success = false;
 
+            //Get the values form the DataContext
+            var stockItem = (StockItem)((Button)e.Source).DataContext;
+
             int.TryParse(txtQuantity.Text, out int quantity);
 
             if (quantity > 0)
             {
                 success = true;
+                if (quantity > stockItem.InStock)
+                {
+                    MessageBox.Show("There is currently not enough stock to fulfil your order and it may be rejected when being processed.");
+                }
             }
 
             if (success)
             {
-                var stockItem = (StockItem)((Button)e.Source).DataContext;
-                OrderController.Instance.UpsertOrderItem(orderHeader.OrderHeaderId, stockItem, quantity);
+                //Create an Orderitem
+                var orderItem = new OrderItem(orderHeader.Id, stockItem.StockId, stockItem.Name, quantity, stockItem.Price);
+                OrderController.Instance.UpsertOrderItem(orderHeader, orderItem);
                 MessageBox.Show("Item Added Successfully");
-                //NavigationService.Navigate(new NewOrder(orderHeader));
+                NavigationService.Navigate(new NewOrder(orderHeader));
             }
             else
             {
@@ -60,7 +68,7 @@ namespace OMS_AM
 
         private void btnExit_CLick(object sender, RoutedEventArgs e)
         {
-            NavigationService.Navigate(new OrderDetails(orderHeader));
+            NavigationService.Navigate(new NewOrder(orderHeader));
         }
     }
 }

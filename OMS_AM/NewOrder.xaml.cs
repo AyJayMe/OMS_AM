@@ -29,20 +29,26 @@ namespace OMS_AM
         {
             InitializeComponent();
             orderHeader = OrderController.Instance.CreateNewOrderHeader();
-            txtOrderNumber.Text = "Order number: " + orderHeader.OrderHeaderId;
+            txtOrderNumber.Text = "Order number: " + orderHeader.Id;
             txtOrderDateTime.Text = orderHeader.Date.ToString();
             DataContext = orderHeader;
             
         }
         public NewOrder(OrderHeader o)
         {
-            txtOrderNumber.Text = "Order number: " + o.OrderHeaderId;
-            txtOrderDateTime.Text = o.Date.ToString();
-            grdOrderItems.ItemsSource = o.OrderItems;
+            InitializeComponent();
+            orderHeader = o;
+            DataContext = orderHeader;
+            txtOrderNumber.Text = "Order number: " + orderHeader.Id;
+            txtOrderValue.Text = "Order Total: $" + orderHeader.Total;
+            txtOrderDateTime.Text = orderHeader.Date.ToString();
+            grdOrderItems.ItemsSource = orderHeader.OrderItems;
         }
 
         private void btnConfirmOrder_Click(object sender, RoutedEventArgs e)
         {
+            var orderHeader = (OrderHeader)((Button)e.Source).DataContext;
+            OrderController.Instance.SubmitOrder(orderHeader);
             NavigationService.Navigate(new MainWindow());
         }
 
@@ -52,9 +58,16 @@ namespace OMS_AM
             NavigationService.Navigate(new AddItem(orderHeader));
         }
 
+        private void btnDeleteItem_Click(object sender, RoutedEventArgs e)
+        {
+            var orderItem = (OrderItem)((Button)e.Source).DataContext;
+            OrderController.Instance.DeleteOrderItem(orderHeader, orderItem.StockItemId);
+            NavigationService.Navigate(new NewOrder(orderHeader));
+        }
+
         private void btnExit_Click(object sender, RoutedEventArgs e)
         {
-            OrderController.Instance.DeleteOrderHeaderAndOrderItems(orderHeader.OrderHeaderId);
+            OrderController.Instance.DeleteOrderHeaderAndOrderItems(orderHeader);
             NavigationService.Navigate(new MainWindow());
         }
     }

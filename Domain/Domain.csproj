@@ -41,7 +41,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OrderCompleted.cs" />
     <Compile Include="OrderHeader.cs" />
+    <Compile Include="OrderNew.cs" />
+    <Compile Include="OrderPending.cs" />
+    <Compile Include="OrderRejected.cs" />
+    <Compile Include="OrderState.cs" />
     <Compile Include="StockItem.cs" />
     <Compile Include="OrderItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

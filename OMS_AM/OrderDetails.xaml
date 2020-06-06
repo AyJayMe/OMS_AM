@@ -13,7 +13,7 @@
         <TextBlock HorizontalAlignment="Left" Margin="124,15,0,0" TextWrapping="Wrap" Text="#" VerticalAlignment="Top" Height="27" Width="167" FontSize="16" FontWeight="Bold"/>
         <DataGrid HorizontalAlignment="Left" Height="300" Margin="29,96,0,0" VerticalAlignment="Top" Width="738"/>
         <Grid x:Name="NewOrder1" Background="White">
-            <Label Content="Order Details" HorizontalAlignment="Left" Margin="25,25,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="16"/>
+            <Label Content="Order Details" HorizontalAlignment="Left" Margin="25,10,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="16"/>
             <TextBlock x:Name="txtOrderDateTime" HorizontalAlignment="Left" Margin="652,64,0,0" TextWrapping="Wrap" Text="02/05/2020 11:40AM" VerticalAlignment="Top" Height="28" Width="131" RenderTransformOrigin="0.462,-0.057"/>
             <TextBlock x:Name="txtOrderNumber" HorizontalAlignment="Left" Margin="31,60,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="28" Width="217" Text="Order Number: " FontSize="14"/>
             <TextBlock x:Name="txtOrderValue" HorizontalAlignment="Left" Margin="253,62,0,0" TextWrapping="Wrap" Text="Order Value: $0.00" VerticalAlignment="Top" Height="28" Width="185" RenderTransformOrigin="0.462,-0.057" FontSize="14"/>
@@ -21,13 +21,14 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="SKU" Binding="{Binding StockItemId}" Width="103"/>
                     <DataGridTextColumn Header="Item Name" Binding="{Binding Description}"  Width="210"/>
-                    <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}"  Width="210"/>
                     <DataGridTextColumn Header="Price" Binding="{Binding Price}"  Width="210"/>
+                    <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}"  Width="210"/>
                 </DataGrid.Columns>
             </DataGrid>
-            <Button x:Name="btnExit" Content="Exit" HorizontalAlignment="Left" Margin="732,10,0,0" VerticalAlignment="Top" Width="56" Background="#FFFAB63E" FontWeight="Bold"/>
-            <Button x:Name="btnConfirmOrder" Content="Process Order" HorizontalAlignment="Left" Margin="600,396,0,0" VerticalAlignment="Top" Width="165" Height="36" Background="#FF54AF48" FontWeight="Bold" FontSize="16" Click="btnConfirmOrder_Click"/>
+            <Button x:Name="btnExit" Content="Exit" HorizontalAlignment="Left" Margin="709,10,0,0" VerticalAlignment="Top" Width="56" Background="#FFFAB63E" FontWeight="Bold" Click="btnExit_Click"/>
+            <Button x:Name="btnConfirmOrder" Content="Process Order" HorizontalAlignment="Left" Margin="600,396,0,0" VerticalAlignment="Top" Width="165" Height="36" Background="#FF54AF48" FontWeight="Bold" FontSize="16" Click="btnConfirmOrder_Click" Visibility="Visible"/>
             <Label Content="Order Created:" HorizontalAlignment="Left" Margin="559,59,0,0" VerticalAlignment="Top"/>
+            <Button x:Name="btnConfirmOrder_Copy" Content="Delete Order" HorizontalAlignment="Left" Margin="31,396,0,0" VerticalAlignment="Top" Width="165" Height="36" Background="#FFBD4040" FontWeight="Bold" FontSize="16" Click="btnDeleteOrder_Click"/>
 
         </Grid>
 

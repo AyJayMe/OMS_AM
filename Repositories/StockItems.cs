@@ -49,6 +49,29 @@ namespace DataAccess
         public bool UpdateStockItemAmount(OrderHeader order)
         {
             bool StockUpdatedCorrectly = false;
+            foreach (OrderItem item in order.OrderItems)
+            {
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    using (var command = new SqlCommand("sp_UpdateStockItemAmount @id, @amount", connection))
+                    {
+                        command.Parameters.Add(new SqlParameter("id", item.StockItemId));
+                        command.Parameters.Add(new SqlParameter("amount", -item.Quantity));
+
+                        try
+                        {
+                            command.ExecuteNonQuery();
+                            StockUpdatedCorrectly = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception($"Error updating stock amount for item #{item.StockItemId}");
+                        }
+                    }
+                }
+            } 
             return StockUpdatedCorrectly;
         }
 

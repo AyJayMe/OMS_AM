@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Domain;
+using DataAccess;
 
 namespace DataAccess
 {
@@ -20,7 +22,7 @@ namespace DataAccess
      * ---------------------------*/
     public class Orders : Entity
     {
-        public void DeleteOrderHeaderAndOrderItems(int orderHeaderId)
+        public void DeleteOrderHeaderAndOrderItems(OrderHeader orderHeader)
         {
             using (var connection = new SqlConnection(connectionString))
             {
@@ -28,25 +30,27 @@ namespace DataAccess
 
                 using (var command = new SqlCommand("sp_DeleteOrderHeaderandOrderItems @orderHeaderId", connection))
                 {
-                    command.Parameters.Add(new SqlParameter("orderHeaderId", orderHeaderId));
+                    command.Parameters.Add(new SqlParameter("orderHeaderId", orderHeader.Id));
                     command.ExecuteNonQuery();
                 }
             }
+            orderHeader = null;
         }
 
-        public void DeleteOrderItem(int orderHeaderId, int stockItemId)
+        public void DeleteOrderItem(OrderHeader orderHeader, int stockItemId)
         {
             using (var connection = new SqlConnection(connectionString))
             {
                 connection.Open();
 
-                using (var command = new SqlCommand("sp_DeleteOrderItem @orderHeaderId @stockItemId", connection))
+                using (var command = new SqlCommand("sp_DeleteOrderItem @orderHeaderId, @stockItemId", connection))
                 {
-                    command.Parameters.Add(new SqlParameter("orderHeaderId", orderHeaderId));
-                    command.Parameters.Add(new SqlParameter("stockItemIdHeaderId", stockItemId));
+                    command.Parameters.Add(new SqlParameter("orderHeaderId", orderHeader.Id));
+                    command.Parameters.Add(new SqlParameter("stockItemId", stockItemId));
                     command.ExecuteNonQuery();
                 }
             }
+            orderHeader.RemoveOrderItem(stockItemId);
         }
 
         public IEnumerable<OrderHeader> GetOrderHeaders()
@@ -68,35 +72,44 @@ namespace DataAccess
                             int OrderState = ohReader.GetInt32(1);
                             DateTime OrderDate = ohReader.GetDateTime(2);
 
-                            var orderItems = new List<OrderItem>();
+                            var orderItems = new ObservableCollection<OrderItem>();
 
-                            //Instatiate orderItem(oi) command object
-                            using (var oiCommand = new SqlCommand("SELECT * FROM OrderItems WHERE @OrderHeaderId = OrderHeaderId", connection))
+                            var orderHeader = new OrderHeader(Id, OrderDate, OrderState);
+
+                            //If order State = 1, delete the order and its items as it was never processed.
+                            if (OrderState == 1)
                             {
-                                oiCommand.Parameters.Add(new SqlParameter("@orderHeaderId", Id));
-                                using (var oiReader = oiCommand.ExecuteReader())
+                                DeleteOrderHeaderAndOrderItems(orderHeader);
+                            }
+                            else
+                            {
+                                //Instatiate orderItem(oi) command object
+                                using (var oiCommand = new SqlCommand("SELECT * FROM OrderItems WHERE @OrderHeaderId = OrderHeaderId", connection))
                                 {
-                                    while (oiReader.Read())
+                                    oiCommand.Parameters.Add(new SqlParameter("@orderHeaderId", Id));
+                                    using (var oiReader = oiCommand.ExecuteReader())
                                     {
-                                        int OrderHeaderId = oiReader.GetInt32(0);
-                                        int StockItemId = oiReader.GetInt32(1);
-                                        string Description = oiReader.GetString(2);
-                                        decimal Price = oiReader.GetDecimal(3);
-                                        int Quantity = oiReader.GetInt32(4);
+                                        while (oiReader.Read())
+                                        {
+                                            int OrderHeaderId = oiReader.GetInt32(0);
+                                            int StockItemId = oiReader.GetInt32(1);
+                                            string Description = oiReader.GetString(2);
+                                            decimal Price = oiReader.GetDecimal(3);
+                                            int Quantity = oiReader.GetInt32(4);
 
-                                        OrderItem orderItem = new OrderItem(OrderHeaderId, StockItemId, Description, Quantity, Price);
-                                        orderItems.Add(orderItem);
+                                            OrderItem orderItem = new OrderItem(OrderHeaderId, StockItemId, Description, Quantity, Price);
+
+                                            orderHeader.AddOrderItem(orderItem);
+                                        }
+                                        oiReader.Close();
                                     }
-                                    oiReader.Close();
                                 }
                             }
-                            var orderHeader = new OrderHeader(Id, OrderState, OrderDate, orderItems);
-
-                            orderHeaders.Add(orderHeader);
+                        orderHeaders.Add(orderHeader);
                         }
-                        ohReader.Close();
+                    ohReader.Close();
                     }
-                    return orderHeaders;
+                return orderHeaders;
                 }
             }
         }
@@ -107,68 +120,10 @@ namespace DataAccess
             {
                 connection.Open();
                 OrderHeader o = new OrderHeader();
-                int id = 0;
+                int orderHeaderId = 0;
                 using (var command = new SqlCommand("sp_InsertOrderHeader", connection))
                 {
-                    id = Convert.ToInt32(command.ExecuteScalar());
-                }
-
-                using (var command = new SqlCommand("sp_SelectOrderHeaderById @id", connection))
-                {
-                    command.Parameters.Add(new SqlParameter("@id", id));
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            int OrderHeaderId = reader.GetInt32(0);
-                            DateTime OrderDate = reader.GetDateTime(2);
-
-                            o = new OrderHeader(OrderHeaderId, OrderDate);
-                        }
-                        reader.Close();
-                    }
-                }
-                return o;
-            }
-        }
-
-        public void UpsertOrderItem(int orderHeaderId, StockItem stockItem, int quantity)
-        {
-            using (var connection = new SqlConnection(connectionString))
-            {
-                connection.Open();
-
-
-                using (var command = new SqlCommand("sp_UpsertOrderItem @orderHeaderId, @stockItemId, @description, @price, @quantity", connection))
-                {
-                    command.Parameters.Add(new SqlParameter("@orderHeaderId", orderHeaderId));
-                    command.Parameters.Add(new SqlParameter("@stockItemId", stockItem.StockId));
-                    command.Parameters.Add(new SqlParameter("@description", stockItem.Name));
-                    command.Parameters.Add(new SqlParameter("@price", stockItem.Price));
-                    command.Parameters.Add(new SqlParameter("@quantity", quantity));
-
-                    int success = command.ExecuteNonQuery();
-                }
-            }
-        }
-    
-
-        public OrderHeader UpdateOrderState(int orderHeaderId, int stateId)
-        {
-            OrderHeader o = new OrderHeader();
-
-            using (var connection = new SqlConnection(connectionString))
-            {
-                connection.Open();
-
-                using (var command = new SqlCommand("sp_UpdateOrderState @orderHeaderId @stateId", connection))
-                {
-                    command.Parameters.Add(new SqlParameter("@orderHeaderId", orderHeaderId));
-                    command.Parameters.Add(new SqlParameter("@stateId", stateId));
-
-                    command.ExecuteNonQuery();
-
+                    orderHeaderId = Convert.ToInt32(command.ExecuteScalar());
                 }
 
                 using (var command = new SqlCommand("sp_SelectOrderHeaderById @id", connection))
@@ -179,17 +134,76 @@ namespace DataAccess
                     {
                         while (reader.Read())
                         {
-                            int OrderHeaderId = reader.GetInt32(0);
+                            int Id = reader.GetInt32(0);
+                            int StateId = reader.GetInt32(1);
                             DateTime OrderDate = reader.GetDateTime(2);
 
-                            o = new OrderHeader(OrderHeaderId, OrderDate);
+                            o = new OrderHeader(Id, OrderDate, StateId);
                         }
                         reader.Close();
                     }
                 }
                 return o;
             }
+        }
 
+        public void ProcessOrder(OrderHeader orderHeader)
+        {
+            
+        }
+
+        public void UpsertOrderItem(OrderHeader orderHeader, OrderItem orderItem)
+        {
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                using (var command = new SqlCommand("sp_UpsertOrderItem @orderHeaderId, @stockItemId, @description, @price, @quantity", connection))
+                {
+                    command.Parameters.Add(new SqlParameter("@orderHeaderId", orderHeader.Id));
+                    command.Parameters.Add(new SqlParameter("@stockItemId", orderItem.StockItemId));
+                    command.Parameters.Add(new SqlParameter("@description", orderItem.Description));
+                    command.Parameters.Add(new SqlParameter("@price", orderItem.Price));
+                    command.Parameters.Add(new SqlParameter("@quantity", orderItem.Quantity));
+
+                    try
+                    {
+                        command.ExecuteNonQuery();
+                        orderHeader.AddOrderItem(orderItem);
+                    }
+                    catch(Exception ex)
+                    {
+                        throw new Exception($"Error upserting item. {ex}");
+                    }
+                }
+            }
+        }
+    
+
+        public void UpdateOrderState(OrderHeader orderHeader, int stateId)
+        {
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                using (var command = new SqlCommand("sp_UpdateOrderState @orderHeaderId, @stateId", connection))
+                {
+                    command.Parameters.Add(new SqlParameter("@orderHeaderId", orderHeader.Id));
+                    command.Parameters.Add(new SqlParameter("@stateId", stateId));
+
+                    try
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Error updating order state. {ex}");
+                    }
+                }
+                orderHeader.setState(stateId);
+            }
         }
     }
 }
