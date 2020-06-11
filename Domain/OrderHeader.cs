@@ -17,7 +17,7 @@ namespace Domain
         public int Id { get; set; }
         public DateTime Date { get; set; }
         public OrderStates State { get => _state.State; }
-        public ObservableCollection<OrderItem> OrderItems { get; set; } = new ObservableCollection<OrderItem>();
+        public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         public int OrderItemCount { get => OrderItems.Sum(oi => oi.Quantity); }
         public decimal Total { get => OrderItems.Sum(oi => oi.Total); }
         
@@ -99,21 +99,6 @@ namespace Domain
             {
                 throw new OperationCanceledException($"The item was not found in the order: {ex}");
             }
-        }
-        public void Complete()
-        {
-            //Call OrderState object Complete method
-            _state.Complete(ref _state);
-        }
-        public void Reject()
-        {
-            //Call OrderState object Reject method
-            _state.Reject(ref _state);
-        }
-        public void Submit()
-        {
-            //Call OrderState object Submit method
-            _state.Submit(ref _state);
         }
     }
 }
